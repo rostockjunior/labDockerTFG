@@ -1,0 +1,11 @@
+# Base image
+FROM alpine:latest
+
+# Install ping for testing connectivity
+RUN apk add --no-cache iputils tcpdump python3 bash
+
+COPY net-config /usr/local/bin/net-config
+RUN chmod +x /usr/local/bin/net-config/*
+
+# Set entrypoint to keep container running
+CMD ["tail", "-f", "/dev/null"]

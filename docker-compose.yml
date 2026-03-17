@@ -1,0 +1,284 @@
+version: '3.9'
+
+services:
+  alice:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: alice
+    networks:
+      network1:
+        ipv4_address: 192.168.1.2
+        driver_opts:
+          com.docker.network.endpoint.sysctls: "net.ipv4.conf.IFNAME.arp_accept=1"
+    volumes:
+      - ./scripts:/scripts
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/alice-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  bob:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: bob
+    networks:
+      network1:
+        ipv4_address: 192.168.1.3
+        driver_opts:
+          com.docker.network.endpoint.sysctls: "net.ipv4.conf.IFNAME.arp_accept=1"
+    volumes:
+      - ./scripts:/scripts
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/bob-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  john:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: john
+    networks:
+      network2:
+        ipv4_address: 192.168.2.2
+        driver_opts:
+          com.docker.network.endpoint.sysctls: "net.ipv4.conf.IFNAME.arp_accept=1"
+    volumes:
+      - ./scripts:/scripts
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/john-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  mx:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: mx
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      network4:
+        ipv4_address: 192.168.4.2
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/mx-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  http:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: http
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      network4:
+        ipv4_address: 192.168.4.3
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/http-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  ns:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: ns
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      network3:
+        ipv4_address: 192.168.3.2
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/ns-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  router_a:
+    build:
+      context: .
+      dockerfile: Dockerfile.router
+    container_name: router_a
+    volumes:
+      - ./scripts:/scripts
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      network1:
+        ipv4_address: 192.168.1.1
+      network5:
+        ipv4_address: 192.168.5.1
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/router_a-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    tty: true
+
+  router_b:
+    build:
+      context: .
+      dockerfile: Dockerfile.router
+    container_name: router_b
+    volumes:
+      - ./scripts:/scripts
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      network2:
+        ipv4_address: 192.168.2.1
+      network8:
+        ipv4_address: 192.168.5.98
+      network6:
+        ipv4_address: 192.168.5.33
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/router_b-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    tty: true
+
+  router_c:
+    build:
+      context: .
+      dockerfile: Dockerfile.router
+    container_name: router_c
+    volumes:
+      - ./scripts:/scripts
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      network6:
+        ipv4_address: 192.168.5.34
+      network9:
+        ipv4_address: 192.168.5.130
+      network3:
+        ipv4_address: 192.168.3.1
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/router_c-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    tty: true
+
+  router_d:
+    build:
+      context: .
+      dockerfile: Dockerfile.router
+    container_name: router_d
+    volumes:
+      - ./scripts:/scripts
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      network7:
+        ipv4_address: 192.168.5.66
+      network9:
+        ipv4_address: 192.168.5.129
+      network4:
+        ipv4_address: 192.168.4.1
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/router_d-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    tty: true
+
+  router_e:
+    build:
+      context: .
+      dockerfile: Dockerfile.router
+    container_name: router_e
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      network5:
+        ipv4_address: 192.168.5.2
+      network8:
+        ipv4_address: 192.168.5.97
+      network7:
+        ipv4_address: 192.168.5.65
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/router_e-config.sh"]
+    volumes:
+      - ./scripts:/scripts
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    tty: true
+
+networks:
+  network1:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.254
+  network2:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.2.0/24
+          gateway: 192.168.2.254
+  network3:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.3.0/24
+          gateway: 192.168.3.254
+  network4:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.4.0/24
+          gateway: 192.168.4.254
+  network5:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.5.0/27
+          gateway: 192.168.5.30
+  network6:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.5.32/27
+          gateway: 192.168.5.62
+  network7:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.5.64/27
+          gateway: 192.168.5.94
+  network8:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.5.96/27
+          gateway: 192.168.5.126
+  network9:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.5.128/27
+          gateway: 192.168.5.158

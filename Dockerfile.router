@@ -1,0 +1,41 @@
+# Base image
+FROM ubuntu:latest
+
+# Install tools for networking
+RUN apt-get update && apt-get install -y iptables iputils-ping tcpdump frr bash-completion nano ipcalc traceroute
+
+# Enable IP forwarding
+RUN echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+# Loose mode in rp_filter to make routing easier
+RUN echo "net.ipv4.conf.all.rp_filter=0" >> /etc/sysctl.conf
+RUN sysctl -p
+
+RUN mkdir -p /etc/frr /var/run/frr
+RUN touch /etc/frr/ripd.conf \   
+        && touch /etc/frr/vtysh.conf \
+        && touch /etc/frr/zebra.conf \
+        && touch /etc/frr/ospfd.conf \
+        && mkdir -p /var/log/frr/ \
+        && touch /var/log/frr/ripd.log \
+        && touch /var/log/frr/vtysh.log \
+        && touch /var/log/frr/zebra.log \
+        && touch /var/log/frr/ospfd.log
+
+RUN chown frr:frr /var/log/frr/*
+
+RUN ln -s /usr/lib/frr/zebra /usr/sbin/zebra \
+    && ln -s /usr/lib/frr/ripd /usr/sbin/ripd \
+    && ln -s /usr/lib/frr/ospfd /usr/sbin/ospfd 
+
+RUN mkdir -p /run/frr && chown frr:frr /run/frr
+
+COPY net-config /usr/local/bin/net-config
+RUN chmod +x /usr/local/bin/net-config/*
+
+RUN echo "zebra=yes" > /etc/frr/daemons
+RUN echo "ripd=yes" >> /etc/frr/daemons
+RUN echo "ospfd=yes" >> /etc/frr/daemons
+
+# Start with a running state
+CMD ["sh", "-c", "sysctl -p && tail -f /dev/null"]
+
