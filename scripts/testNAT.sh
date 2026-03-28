@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # testNAT.sh
-# This script shows the difference between having NAT enabled or disabled on router_a.
-# Without NAT, john can see alice's real IP. With NAT, john only sees router_a's IP.
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -19,8 +17,8 @@ divider() { echo -e "${BOLD}--------------------------------------------------${
 
 # Get alice's current IP from her interface
 ALICE_IP=$(docker exec alice ip -4 addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1)
-ROUTER_A_ETH1="192.168.5.1"
-TARGET="192.168.2.2" # john
+ROUTER_A_ETH1=$(docker exec router_a ip -4 addr show eth1 | grep inet | awk '{print $2}' | cut -d/ -f1)
+TARGET=$(docker exec john ip -4 addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1) # john
 
 capture_source_ip() {
   # Start tcpdump on router_a's external interface, then ping from alice
@@ -34,7 +32,7 @@ capture_source_ip() {
 
 echo ""
 echo -e "${BOLD}========================================${NC}"
-echo -e "${BOLD}   NAT demo — router_a                  ${NC}"
+echo -e "${BOLD}   NAT Test — router_a                  ${NC}"
 echo -e "${BOLD}========================================${NC}"
 echo -e "  Alice IP   : ${YELLOW}$ALICE_IP${NC}"
 echo -e "  Router eth1 : ${YELLOW}$ROUTER_A_ETH1${NC}"
@@ -99,4 +97,4 @@ echo -e "  With NAT     -> john sees ${GREEN}${BOLD}$ROUTER_A_ETH1${NC}  (router
 echo ""
 echo -e "  NAT rule is ${GREEN}still active${NC} after this test."
 divider
-echo ""
+echo

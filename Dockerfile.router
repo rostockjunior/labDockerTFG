@@ -2,7 +2,7 @@
 FROM ubuntu:latest
 
 # Install tools for networking
-RUN apt-get update && apt-get install -y iptables iputils-ping tcpdump frr bash-completion nano ipcalc traceroute
+RUN apt-get update && apt-get install -y iptables iputils-ping tcpdump frr bash-completion nano ipcalc traceroute isc-dhcp-server
 
 RUN update-alternatives --set iptables /usr/sbin/iptables-nft \
  && update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
