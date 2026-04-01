@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   alice:
     build:
@@ -58,40 +56,6 @@ services:
       - NET_RAW
     tty: true
 
-  mx:
-    build:
-      context: .
-      dockerfile: Dockerfile.node
-    container_name: mx
-    volumes:
-      - ./scripts:/scripts
-    networks:
-      network4:
-        ipv4_address: 192.168.4.2
-    restart: always
-    entrypoint: ["/usr/local/bin/net-config/mx-config.sh"]
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    tty: true
-
-  http:
-    build:
-      context: .
-      dockerfile: Dockerfile.node
-    container_name: http
-    volumes:
-      - ./scripts:/scripts
-    networks:
-      network4:
-        ipv4_address: 192.168.4.3
-    restart: always
-    entrypoint: ["/usr/local/bin/net-config/http-config.sh"]
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    tty: true
-
   ns:
     build:
       context: .
@@ -108,6 +72,125 @@ services:
       - NET_ADMIN
       - NET_RAW
     tty: true
+
+  firewall_extern:
+    build:
+      context: .
+      dockerfile: Dockerfile.router
+    container_name: firewall_extern
+    volumes:
+      - ./scripts:/scripts
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      network4_ext:
+        ipv4_address: 192.168.4.2
+      network4_dmz:
+        ipv4_address: 192.168.4.65
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/firewall_extern-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    tty: true
+
+  proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: proxy
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      network4_dmz:
+        ipv4_address: 192.168.4.66
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/proxy-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  firewall_intern:
+    build:
+      context: .
+      dockerfile: Dockerfile.router
+    container_name: firewall_intern
+    volumes:
+      - ./scripts:/scripts
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      network4_dmz:
+        ipv4_address: 192.168.4.67
+      network4_int:
+        ipv4_address: 192.168.4.129
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/firewall_intern-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    tty: true
+
+  http:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: http
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      network4_int:
+        ipv4_address: 192.168.4.130
+        ipv6_address: fd00:4::130
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/http-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  mysql:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: mysql
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      network4_int:
+        ipv4_address: 192.168.4.131
+        ipv6_address: fd00:4::131
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/mysql-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  syslog:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: syslog
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      network4_int:
+        ipv4_address: 192.168.4.132
+        ipv6_address: fd00:4::132
+    restart: always
+    entrypoint: ["/usr/local/bin/net-config/syslog-config.sh"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+
+
+  # --- routers ---
 
   router_a:
     build:
@@ -193,7 +276,7 @@ services:
         ipv4_address: 192.168.5.66
       network9:
         ipv4_address: 192.168.5.129
-      network4:
+      network4_ext:
         ipv4_address: 192.168.4.1
     restart: always
     entrypoint: ["/usr/local/bin/net-config/router_d-config.sh"]
@@ -227,6 +310,8 @@ services:
       - SYS_ADMIN
     tty: true
 
+# --- networks ---
+
 networks:
   network1:
     driver: bridge
@@ -234,48 +319,72 @@ networks:
       config:
         - subnet: 192.168.1.0/24
           gateway: 192.168.1.254
+
   network2:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.2.0/24
           gateway: 192.168.2.254
+
   network3:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.3.0/24
           gateway: 192.168.3.254
-  network4:
+
+  network4_ext:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.4.0/24
-          gateway: 192.168.4.254
+        - subnet: 192.168.4.0/26
+          gateway: 192.168.4.62
+
+  network4_dmz:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.4.64/26
+          gateway: 192.168.4.126
+
+  network4_int:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 192.168.4.128/26
+          gateway: 192.168.4.190
+        - subnet: fd00:4::/64
+
   network5:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.5.0/27
           gateway: 192.168.5.30
+
   network6:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.5.32/27
           gateway: 192.168.5.62
+
   network7:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.5.64/27
           gateway: 192.168.5.94
+
   network8:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.5.96/27
           gateway: 192.168.5.126
+
   network9:
     driver: bridge
     ipam:
