@@ -1,9 +1,7 @@
--- Create a sample database and user for the web application
-
 CREATE DATABASE IF NOT EXISTS webapp;
 
-CREATE USER IF NOT EXISTS 'webuser'@'192.168.4.%' IDENTIFIED BY 'webpass';
-GRANT ALL PRIVILEGES ON webapp.* TO 'webuser'@'192.168.4.%';
+CREATE USER IF NOT EXISTS 'user'@'192.168.4.%' IDENTIFIED BY 'user';
+GRANT ALL PRIVILEGES ON webapp.* TO 'user'@'192.168.4.%';
 
 FLUSH PRIVILEGES;
 

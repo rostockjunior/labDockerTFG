@@ -8,8 +8,7 @@ ip route flush table main
 ip route add 192.168.4.128/26 dev eth0 scope link src 192.168.4.131
 ip route add default via 192.168.4.129 dev eth0
 
-# Setup mariadb (MySQL compatible)
-apk add --no-cache mariadb mariadb-client
+# Initialize MariaDB data directory if needed
 if [ ! -d /var/lib/mysql/mysql ]; then
   mysql_install_db --user=mysql --datadir=/var/lib/mysql
 fi
@@ -23,7 +22,7 @@ until mysqladmin ping --silent; do
 done
 
 # Run the init script to create database and user
-mysql </scripts/mysql/init.sql
+mysql </scripts/init.sql
 
 echo "MariaDB is ready"
 

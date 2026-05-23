@@ -4,25 +4,24 @@ set -ex
 # Setup networking
 ip route flush table main
 
-# Configure network routes
-ip route add 192.168.1.0/24 dev eth0 scope link src 192.168.1.1
-ip route add 192.168.5.0/27 dev eth1 scope link src 192.168.5.1
+# Detect interfaces dynamically — Docker may assign eth names in any order
+ETH_LAN=$(ip -4 addr | grep '192.168.1.1' | awk '{print $NF}')
+ETH_BACKBONE=$(ip -4 addr | grep '192.168.5.1' | awk '{print $NF}')
 
-# Configure NAT
-iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth1 -j MASQUERADE
+ip route add 192.168.1.0/24 dev $ETH_LAN scope link src 192.168.1.1
+ip route add 192.168.5.0/27 dev $ETH_BACKBONE scope link src 192.168.5.1
+
+# NAT: traffic from network1 goes out with router_a's IP
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o $ETH_BACKBONE -j MASQUERADE
 
 # DHCP server setup
-# Tell isc-dhcp-server to listen only on eth0 (network1 side)
-echo 'INTERFACESv4="eth0"' >/etc/default/isc-dhcp-server
-
+echo 'INTERFACESv4="'$ETH_LAN'"' >/etc/default/isc-dhcp-server
 cp /scripts/router_a-dhcpd.conf /etc/dhcp/dhcpd.conf
 mkdir -p /var/lib/dhcp
 touch /var/lib/dhcp/dhcpd.leases
-
-# Start the DHCP server
-/usr/sbin/dhcpd -4 -cf /etc/dhcp/dhcpd.conf -lf /var/lib/dhcp/dhcpd.leases eth0
+rm -f /var/run/dhcpd.pid
+/usr/sbin/dhcpd -4 -cf /etc/dhcp/dhcpd.conf -lf /var/lib/dhcp/dhcpd.leases $ETH_LAN
 
 /usr/local/bin/net-config/dynamic-routing.sh
 
-# Execute CMD arguments
 exec /bin/sh

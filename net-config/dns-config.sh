@@ -3,10 +3,11 @@ set -ex
 
 # Setup networking
 ip route flush table main
-
-# Configure network routes
 ip route add 192.168.3.0/24 dev eth0 scope link src 192.168.3.2
 ip route add default via 192.168.3.1 dev eth0
 
-# Execute CMD arguments
+# Configure and active service
+cp /scripts/dnsmasq.conf /etc/dnsmasq.conf
+dnsmasq --no-daemon &
+
 exec /bin/sh

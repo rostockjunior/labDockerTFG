@@ -1,0 +1,14 @@
+# Base image
+FROM alpine:latest
+
+RUN apk add --no-cache iputils tcpdump python3 bash mariadb mariadb-client
+RUN mkdir -p /run/mysqld && chown mysql:mysql /run/mysqld
+
+# Comment skip-networkin directuve to let the service open port TCP 3306
+RUN sed -i 's/^skip-networking/# skip-networking/' /etc/my.cnf.d/mariadb-server.cnf
+
+COPY net-config /usr/local/bin/net-config
+RUN chmod +x /usr/local/bin/net-config
+
+# Set entrypoint to keep container running
+CMD ["tail", "-f", "/dev/null"]

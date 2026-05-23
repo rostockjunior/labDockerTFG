@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# netctl.sh - main control script for the lab
-# usage: ./netctl.sh [--start-scenario] [--stop-scenario] [--open <node>]
-#        [--start-rip] [--stop-rip] [--start-ospf] [--stop-ospf]
-
 # Check if Docker is available
 if ! command -v docker &>/dev/null; then
   echo "Error: Docker is not installed."
