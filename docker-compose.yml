@@ -47,8 +47,14 @@ services:
         ipv4_address: 192.168.2.2
         driver_opts:
           com.docker.network.endpoint.sysctls: "net.ipv4.conf.IFNAME.arp_accept=1"
+      network1:
+        ipv4_address: 192.168.1.100
+        driver_opts:
+          com.docker.network.endpoint.sysctls: "net.ipv4.conf.IFNAME.arp_accept=1"
     volumes:
       - ./scripts:/scripts
+    sysctls:
+      - net.ipv4.ip_forward=1
     restart: always
     entrypoint: ["/usr/local/bin/net-config/john-config.sh"]
     cap_add:
